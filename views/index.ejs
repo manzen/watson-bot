@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <title>cl-watson-demo</title>
+  <link rel='stylesheet' href='/stylesheets/style.css'/>
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse bg-inverse center logo">
+  <p>BOT名</p>
+</nav>
+<div class="container">
+  <div class="box">
+    <div class="chat-box">
+      <div id="messages"></div>
+    </div>
+  </div>
+  <form action="">
+    <div class="input-group">
+      <input id="m" type="text" class="form-control">
+      <span class="input-group-btn">
+                    <button class="btn btn-primary" style="margin-bottom: 4px;" type="button">Send!</button>
+                </span>
+    </div>
+  </form>
+</div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+    $(function () {
+        var socket = io();
+        $('form').submit(function () {
+            socket.emit('chat message', $('#m').val());
+            $('#m').val('');
+            return false;
+        });
+        socket.on('chat message', function (msg) {
+            $('#messages').append($('<li>').text(msg).addClass('col-md-6 col-md-offset-4 chat-hukidashi someone').wrap('<div />'));
+        });
+        socket.on('bot message', function (msg) {
+            $('#messages').append($('<li>').text(msg).addClass('col-md-6 chat-hukidashi').wrap('<div />'));
+        });
+    });
+</script>
+</html>

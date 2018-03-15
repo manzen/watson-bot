@@ -1,0 +1,79 @@
+
+.logo img {
+  width: 30%;
+  height: auto;
+}
+
+.logo p {
+  font-size: 20px;
+  color: white;
+  margin-top: 10px;
+}
+
+.center {
+  text-align: center;
+}
+
+.box {
+  height: 540px;
+  border-radius: 10px;
+  background-color: #a6baff;
+  overflow: scroll;
+}
+
+.icon {
+  margin-top: 20px;
+  margin-left: 20px;
+}
+
+.icon img {
+  border-radius: 50%;
+  width: 90px;
+  height: 90px;
+}
+
+/* チャットレイアウト */
+.chat-box {
+  width: 100%;
+  height: auto;
+  overflow: hidden; /*floatの解除*/
+  margin-bottom: 20px;
+}
+
+.chat-hukidashi {
+  display: inline-block; /*コメントの文字数に合わせて可変*/
+  padding: 15px 20px;
+  margin-left: 120px;
+  margin-top: 8px;
+  margin-right: 20px;
+  border-radius: 10px;
+  position: relative;
+  background-color: #d1e8ff;
+}
+
+.chat-hukidashi:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -10px;
+  margin-top: -10px;
+  display: block;
+  width: 0px;
+  height: 0px;
+  border-right: 10px solid #d1e8ff;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+.someone {
+  background-color: #BCF5A9;
+}
+
+.someone:after {
+  left: auto;
+  right: -8px;
+  border-right: none;
+  border-left: 10px solid #BCF5A9;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
