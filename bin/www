@@ -1,113 +1,101 @@
 #!/usr/bin/env node
 
-const config = require('../config');
+const config = require('../config/config');
 
 /**
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('internal-qa-tool:server');
-var http = require('http');
+const app = require('../app');
+const debug = require('debug')('internal-qa-tool:server');
+const http = require('http');
+const Watson = require('../module/watson');
+const ConversationV1 = require('watson-developer-cloud/conversation/v1');
+const DiscoveryV1 = require('watson-developer-cloud/discovery/v1');
+
+const conversation = new ConversationV1({
+    username: config.CONVERSATION.USER_NAME,
+    password: config.CONVERSATION.PASSWORD,
+    version: 'v1',
+    version_date: '2018-02-16'
+});
+
+const discovery = new DiscoveryV1({
+    username: config.DISCOVERY.USER_NAME,
+    password: config.DISCOVERY.PASSWORD,
+    version: 'v1',
+    version_date: '2017-11-07'
+});
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+const server = http.createServer(app);
 
-var io = require('socket.io').listen(server);
+const io = require('socket.io').listen(server);
 io.on('connection', function (socket) {
-    var ConversationV1 = require('watson-developer-cloud/conversation/v1');
 
-    var conversation = new ConversationV1({
-        username: config.CONVERSATION.USER_NAME,
-        password: config.CONVERSATION.PASSWORD,
-        version: 'v1',
-        version_date: '2018-02-16'
-    });
+    let res = [];
 
-    var DiscoveryV1 = require('watson-developer-cloud/discovery/v1');
-
-    var discovery = new DiscoveryV1({
-        username: config.DISCOVERY.USER_NAME,
-        password: config.DISCOVERY.PASSWORD,
-        version: 'v1',
-        version_date: '2017-11-07'
-    });
-    var res = [];
-    // このページにアクセスしたときに、空のメッセージをConversationに投げる
-    conversation.message({workspace_id: config.CONVERSATION.WORKSPACE_ID, input: {'text': ''}}, processResponse);
-
-    // Conversationのレスポンスを取得する
-    function processResponse(err, response) {
-        if (err) {
-            console.error(err); // something went wrong
-            return;
-        }
-        // intentがマッチしたらコンソールに出力する
-        if (response.intents.length > 0) {
-            console.log('chat message', 'Detected intent: #' + response.intents[0].intent);
-        }
-        // 何らかの返答があれば、それをbotからの返答として全て返す(ループはjump to の時に必要)
-        for (var i = 0, len = response.output.text.length; i < len; i++) {
+    Watson.conversation_init().then((response) => {
+        for (let i = 0, len = response.output.text.length; i < len; i++) {
             if (response.output.text[i] !== '') {
                 io.to(socket.id).emit('bot message', response.output.text[i]);
             }
         }
         res[socket.id] = response;
-    }
+    }).catch((err) => {
+        console.log(err);
+    });
 
-    //新しいメッセージを受信したときの動作
     socket.on('chat message', function (msg) {
-        //受信したメッセージをそのまま、チャット画面に表示
         io.to(socket.id).emit('chat message', msg);
-        // 受信したメッセージをAPIに投げる
-        conversation.message({
-            workspace_id: config.CONVERSATION.WORKSPACE_ID,
-            input: {text: msg},
-            context: res[socket.id].context
-        }, function (err, conversation_response) {
-            if (err) {
-                console.log('error:', err);
-                return;
-            } else {
-                discovery.query({
-                    environment_id: config.DISCOVERY.ENVIRONMENT_ID,
-                    collection_id: config.DISCOVERY.COLLECTION_ID,
-                    natural_language_query: msg,
-                    count: 3
-                }, function(error, discovery_response) {
-                    if (error) {
-                        console.error(err); // something went wrong
-                        return;
+
+        if (!msg) {
+            Watson.send_message(null, res[socket.id].context).then((response) => {
+                for (let i = 0, len = response.output.text.length; i < len; i++) {
+                    if (response.output.text[i] !== '') {
+                        io.to(socket.id).emit('bot message', response.output.text[i]);
                     }
-                    if (discovery_response.results.length === 0) {
-                        conversation.message({
-                            workspace_id: config.CONVERSATION.WORKSPACE_ID,
-                            input: {'text': ''},
-                            context: res[socket.id].context
-                        }, processResponse);
+                }
+                res[socket.id] = response;
+            }).catch((err) => {
+                console.log(err);
+            });
+        } else {
+            Watson.natural_language_query(msg).then((response) => {
+                let send_msg;
+                if (response.results.length === 0) {
+                    send_msg = "not_found";
+                } else {
+                    send_msg = msg;
+                }
+                Watson.send_message(send_msg, res[socket.id].context).then((res) => {
+                    for (let i = 0, len = res.output.text.length; i < len; i++) {
+                        if (res.output.text[i] !== '') {
+                            io.to(socket.id).emit('bot message', res.output.text[i]);
+                        }
                     }
-                    discovery_response.results.forEach(function(result) {
-                        console.log(result.A);
-                        processResponse(err, conversation_response);
+                    res[socket.id] = res;
+
+                    response.results.forEach(function(result) {
                         if (result.A !== '') {
                             io.to(socket.id).emit('bot message', result.A);
                         }
-                        res[socket.id] = discovery_response;
                     });
                 });
-
-            }
-        });
+            }).catch((err) => {
+                console.log(err);
+            });
+        }
     });
 });
 
