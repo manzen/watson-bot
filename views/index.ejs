@@ -1,16 +1,16 @@
 <!doctype html>
 <html>
 <head>
-  <title>cl-watson-demo</title>
+  <title>internal-qa-tool</title>
   <link rel='stylesheet' href='/stylesheets/style.css'/>
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 </head>
 <body>
 <nav class="navbar navbar-inverse bg-inverse center logo">
-  <p>BOT名</p>
+  <p>Internal QA Tool</p>
 </nav>
 <div class="container">
-  <div class="box">
+  <div class="box" id="box">
     <div class="chat-box">
       <div id="messages"></div>
     </div>
@@ -19,14 +19,14 @@
     <div class="input-group">
       <input id="m" type="text" class="form-control">
       <span class="input-group-btn">
-                    <button class="btn btn-primary" style="margin-bottom: 4px;" type="button">Send!</button>
-                </span>
+        <button class="btn btn-primary" style="margin-bottom: 4px;" type="submit">Send!</button>
+      </span>
     </div>
   </form>
 </div>
 </body>
 <script src="/socket.io/socket.io.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script>
     $(function () {
         var socket = io();
@@ -40,6 +40,9 @@
         });
         socket.on('bot message', function (msg) {
             $('#messages').append($('<li>').text(msg).addClass('col-md-6 chat-hukidashi').wrap('<div />'));
+            $('#box').delay(100).animate({
+                scrollTop: $(document).height()
+            },1500);
         });
     });
 </script>

@@ -55,7 +55,7 @@ exports.natural_language_query = (query) => {
             environment_id: config.DISCOVERY.ENVIRONMENT_ID,
             collection_id: config.DISCOVERY.COLLECTION_ID,
             natural_language_query: query,
-            count: 3
+            count: 1
         }, function(err, response) {
             if (err) {
                 reject(err);

@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-const config = require('../config/config');
-
 /**
  * Module dependencies.
  */
