@@ -7,15 +7,15 @@ const DiscoveryV1 = require('watson-developer-cloud/discovery/v1');
 const conversation = new ConversationV1({
     username: config.CONVERSATION.USER_NAME,
     password: config.CONVERSATION.PASSWORD,
-    version: 'v1',
-    version_date: '2018-02-16'
+    version: config.CONVERSATION.VERSION,
+    version_date: config.CONVERSATION.VERSION_DATE
 });
 
 const discovery = new DiscoveryV1({
     username: config.DISCOVERY.USER_NAME,
     password: config.DISCOVERY.PASSWORD,
-    version: 'v1',
-    version_date: '2017-11-07'
+    version: config.DISCOVERY.VERSION,
+    version_date: config.DISCOVERY.VERSION_DATE
 });
 
 exports.conversation_init = () => {

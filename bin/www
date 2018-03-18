@@ -10,22 +10,6 @@ const app = require('../app');
 const debug = require('debug')('internal-qa-tool:server');
 const http = require('http');
 const Watson = require('../module/watson');
-const ConversationV1 = require('watson-developer-cloud/conversation/v1');
-const DiscoveryV1 = require('watson-developer-cloud/discovery/v1');
-
-const conversation = new ConversationV1({
-    username: config.CONVERSATION.USER_NAME,
-    password: config.CONVERSATION.PASSWORD,
-    version: 'v1',
-    version_date: '2018-02-16'
-});
-
-const discovery = new DiscoveryV1({
-    username: config.DISCOVERY.USER_NAME,
-    password: config.DISCOVERY.PASSWORD,
-    version: 'v1',
-    version_date: '2017-11-07'
-});
 
 /**
  * Get port from environment and store in Express.
@@ -45,6 +29,7 @@ io.on('connection', function (socket) {
 
     let res = [];
 
+    // init first message
     Watson.conversation_init().then((response) => {
         for (let i = 0, len = response.output.text.length; i < len; i++) {
             if (response.output.text[i] !== '') {
@@ -59,43 +44,32 @@ io.on('connection', function (socket) {
     socket.on('chat message', function (msg) {
         io.to(socket.id).emit('chat message', msg);
 
-        if (!msg) {
-            Watson.send_message(null, res[socket.id].context).then((response) => {
-                for (let i = 0, len = response.output.text.length; i < len; i++) {
-                    if (response.output.text[i] !== '') {
-                        io.to(socket.id).emit('bot message', response.output.text[i]);
+        Watson.natural_language_query(msg).then((response) => {
+            let send_msg;
+            if (response.results.length === 0) {
+                send_msg = "not_found";
+            } else {
+                send_msg = msg;
+            }
+            Watson.send_message(send_msg, res[socket.id].context).then((res) => {
+                for (let i = 0, len = res.output.text.length; i < len; i++) {
+                    if (res.output.text[i] !== '') {
+                        io.to(socket.id).emit('bot message', res.output.text[i]);
                     }
                 }
-                res[socket.id] = response;
-            }).catch((err) => {
-                console.log(err);
-            });
-        } else {
-            Watson.natural_language_query(msg).then((response) => {
-                let send_msg;
-                if (response.results.length === 0) {
-                    send_msg = "not_found";
-                } else {
-                    send_msg = msg;
-                }
-                Watson.send_message(send_msg, res[socket.id].context).then((res) => {
-                    for (let i = 0, len = res.output.text.length; i < len; i++) {
-                        if (res.output.text[i] !== '') {
-                            io.to(socket.id).emit('bot message', res.output.text[i]);
-                        }
-                    }
-                    res[socket.id] = res;
+                res[socket.id] = res;
 
+                if (msg) {
                     response.results.forEach(function(result) {
                         if (result.A !== '') {
                             io.to(socket.id).emit('bot message', result.A);
                         }
                     });
-                });
-            }).catch((err) => {
-                console.log(err);
+                }
             });
-        }
+        }).catch((err) => {
+            console.log(err);
+        });
     });
 });
 
