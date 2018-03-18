@@ -1,5 +1,5 @@
 node_modules/
-config.json
+/config
 .idea/
 internal-qa-tool.iml
 .DS_Store
