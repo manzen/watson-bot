@@ -6,8 +6,18 @@
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 </head>
 <body>
-<nav class="navbar navbar-inverse bg-inverse center logo">
-  <p>Internal QA Tool</p>
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">Internal QA Tool</a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="/">Home</a></li>
+        <li><a href="admin">Admin</a></li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
 </nav>
 <div class="container">
   <div class="box" id="box">
@@ -24,6 +34,11 @@
     </div>
   </form>
 </div>
+<footer class="footer">
+  <div class="container">
+    <p class="text-muted">Internal QA Tool.</p>
+  </div>
+</footer>
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
@@ -42,7 +57,7 @@
             $('#messages').append($('<li>').text(msg).addClass('col-md-6 chat-hukidashi').wrap('<div />'));
             $('#box').delay(100).animate({
                 scrollTop: $(document).height()
-            },1500);
+            },1000);
         });
     });
 </script>
